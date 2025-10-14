@@ -20,3 +20,9 @@ Este repositório contém a implementação do projeto **Tema 1**, desenvolvido 
 - Arthur Oliveira Rabelo
 - Henrique Fonseca de Castro
 - Tiago Gonçalves Giugni Filho
+
+===========================================================================
+
+## Formulario de Alinhamento:
+
+https://forms.gle/88vt7ycirvyYDqqW7
