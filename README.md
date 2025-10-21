@@ -6,7 +6,7 @@ Este repositório contém a implementação do projeto **Tema 1**, desenvolvido 
 
 ## Diagramas:
 
-![Diagrama de Classes](https://drive.google.com/uc?export=view&id=1WiCop36eYQJZcPv-i2od_LMQouxKRcC0)
+![Diagrama de Classes](imgs/diagrama_de_classes.png)
 
 ===========================================================================
 
