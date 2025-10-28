@@ -6,11 +6,11 @@ Este repositório contém a implementação do projeto **Tema 1**, desenvolvido 
 
 ## Diagramas:
 
-![Diagrama de Classes](docs\imgs\diagrama_classes.png)
+![Diagrama de Classes](docs/imgs/diagrama_classes.png)
 
 ===========================================================================
 
-![Diagrama de Casos de Uso](docs\imgs\diagrama_casos_uso.png)
+![Diagrama de Casos de Uso](docs/imgs/diagrama_casos_uso.png)
 
 ## Integrantes da Equipe:
 
