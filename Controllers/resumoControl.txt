@@ -1,0 +1,13 @@
+Endpoints criados em ambas as classes. Por enquanto tem um repositorio fake apenas para facilitar o entendimento.
+A variável SECRET KET serve como um "carimbo" para gerar e validar o token, garantindo que não haja alterações
+maliciosas. Por enquanto esta hardcode, mas deve ser passada para uma variável de ambiente.
+
+router = APIRouter(prefix="/users", tags=["Users"]) -> cria uma especie de "tag" para os endpoints
+
+Utilização das bibliotecas hashlib e jwt para codificação e decodificação dos tokens gerados pelo login
+
+Os métodos HTTP: GET, POST, DELETE, PUT, informam que tipo de ação o método vai realizar naquele endpoint.
+
+@staticmethod -> métodos que não precisam de instância para serem utilizados
+@routers -> são decoradores que ajudam o fast api a identificar onde existem rotas http, sinalizando que ali existe um endpoint
+
