@@ -6,11 +6,11 @@ Este repositório contém a implementação do projeto **Tema 1**, desenvolvido 
 
 ## Diagramas:
 
-![Diagram de Classes](docs/imgs/UML_de_Classes.jpg)
+![Diagram de Classes](src/docs/imgs/UML_de_Classes.jpg)
 
 ===========================================================================
 
-![Diagram de Casos de Uso](docs/imgs/UML_Caso_de_Uso.jpg)
+![Diagram de Casos de Uso](src/docs/imgs/UML_Caso_de_Uso.jpg)
 
 ## Integrantes da Equipe:
 
