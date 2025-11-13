@@ -1,0 +1,14 @@
+| Método          | Função principal                | Situação |
+| --------------- | ------------------------------- | -------- |
+| `__init__`      | Inicializa o repositório        | ✅        |
+| `cadastro_user` | Adiciona novo usuário           | ✅        |
+| `verifica_user` | Busca usuário pelo e-mail       | ✅        |
+| `compara_user`  | Valida login com e-mail e senha | ✅        |
+| `alterar_user`  | Atualiza dados do usuário       | ✅        |
+| `listar_users`  | Retorna todos os usuários       | ✅        |
+
+
+__init__ É executado quando a classe é criada (repo = Repository()).
+self._fake_db: é uma lista de usuários em memória (simula o banco enquanto o real não está pronto).
+Se encontrar o mesmo id, substitui o antigo pelo novo (self._fake_db[i] = user_atualizado).
+Optional e List: servem para indicar os tipos de dados (ex: pode ser uma lista ou algo opcional — tipo pode ser None).
