@@ -9,4 +9,4 @@ class User:
     senha_hash: str
     first_data_login: datetime | None
     data_criacao: datetime
-    vetor_roles: list[str]
+    vetor_roles: list[bool]
