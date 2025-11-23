@@ -1,0 +1,24 @@
+- Arquivo: database.py
+* Função: Estabelecer a infraestrutura do banco de dados.
+* Processo: Carrega variáveis de ambiente para construir uma URL de conexão MySQL.
+* Componentes:
+    * `create_engine`: Cria o motor de comunicação do SQLAlchemy.
+    * `SessionLocal`: Gera sessões individuais de banco de dados.
+    * `Base`: Classe base para todos os modelos SQLAlchemy.
+
+- Arquivo: models.py
+* Função: Define a estrutura das tabelas do banco de dados.
+* Processo: Mapeia classes Python para tabelas do banco de dados.
+* Exemplo: A classe `UserModel` mapeia a tabela `users`. Colunas incluem `id`, `nickname`, `email`, `senha_hash`, campos de data e a coluna JSON `vetor_roles`.
+
+- Arquivo: user.py
+* Função: Fornece uma estrutura de dados interna.
+* Processo: Define um dataclass `User` para manipulação de informações de utilizador dentro da aplicação.
+* Objetivo: Separar a manipulação de dados internos do modelo SQLAlchemy.
+
+- Resumo do Fluxo do Sistema:
+1.  database.py: Fornece ferramentas de conexão e a função `get_db()` para sessões de base de dados.
+2.  models.py: Define esquemas de tabela para operações ORM do SQLAlchemy.
+3.  user.py: Fornece uma representação de dados interna, separando a lógica da aplicação da estrutura do banco de dados.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
