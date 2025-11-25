@@ -26,3 +26,8 @@ Este repositório contém a implementação do projeto **Tema 1**, desenvolvido 
 ## Formulario de Alinhamento:
 
 https://forms.gle/88vt7ycirvyYDqqW7
+
+===========================================================================
+
+## Apresentação:
+[Clique aqui para assistir à apresentação](https://youtu.be/mk0rJzqEWw0)
