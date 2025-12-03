@@ -1,11 +1,16 @@
+from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException
 from datetime import datetime, timedelta
+import os
 import hashlib, jwt
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-# trocar para variavel de ambiente, NAO PODE FICAR HARDCODE
-SECRET_KEY = "chave_super_secreta"
+load_dotenv()
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+if SECRET_KEY is None:
+    raise Exception("ERRO: SECRET_KEY não definida ao ambiente!")
 
 class authController:
 

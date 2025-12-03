@@ -2,7 +2,6 @@ from sqlalchemy.orm import Session
 from src.Database.models import User
 from datetime import datetime
 
-
 class Repository:
 
     def __init__(self, db: Session):
@@ -53,3 +52,5 @@ class Repository:
         Retorna todos os usuários cadastrados.
         """
         return self.db.query(User).all()
+
+    def remove_users():
