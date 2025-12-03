@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from src.Database.models import User
 from datetime import datetime
 
+
 class Repository:
 
     def __init__(self, db: Session):
@@ -16,15 +17,14 @@ class Repository:
         Insere um novo usuário no banco.
         """
         new_user.data_criacao = datetime.now()
-        self.db.add(new_user)       # Marca para INSERT
-        self.db.commit()            # Executa o INSERT
-        self.db.refresh(new_user)   # Atualiza objeto com dados do banco 
+        self.db.add(new_user)
+        self.db.commit()
+        self.db.refresh(new_user)
         return new_user
 
     def verifica_user(self, email: str) -> User | None:
         """
         Busca um usuário pelo email.
-        Retorna o User ou None se não existir.
         """
         return (
             self.db.query(User)
@@ -43,7 +43,7 @@ class Repository:
         """
         Atualiza os dados de um usuário já existente.
         """
-        self.db.merge(user_atualizado)   # Realiza UPDATE
+        self.db.merge(user_atualizado)
         self.db.commit()
         return user_atualizado
 
@@ -53,4 +53,19 @@ class Repository:
         """
         return self.db.query(User).all()
 
-    def remove_users():
+    def remove_user(self, user_id: int) -> bool:
+        """
+        Remove um usuário pelo ID.
+
+        Retorna:
+            True  -> Usuário removido com sucesso
+            False -> Usuário não encontrado
+        """
+        user = self.db.query(User).filter(User.id == user_id).first()
+
+        if not user:
+            return False
+
+        self.db.delete(user)
+        self.db.commit()
+        return True
