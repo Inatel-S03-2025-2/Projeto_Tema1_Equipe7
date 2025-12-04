@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from src.Repository.repository import Repository
 from src.Database.models import UserModel
 from src.Database.database import get_db
+# Importamos o authController para usar a função de hash
+from src.Controllers.authController import authController
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -20,10 +22,12 @@ async def cadastrar(nickname: str, email: str, senha: str, repo: Repository = De
     if repo.verifica_user(email):
         raise HTTPException(status_code=400, detail="Usuário com este e-mail já existe")
 
+    senha_segura = authController.hash_senha(senha)
+
     novo_user = UserModel(
         nickname=nickname,
         email=email,
-        senha_hash=senha,
+        senha_hash=senha_segura,
         vetor_roles=[]
     )
 
