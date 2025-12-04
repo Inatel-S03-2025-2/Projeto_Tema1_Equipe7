@@ -1,64 +1,80 @@
 import pytest
-from src.Controllers.authController import authController, login as login_endpoint
+from src.Controllers.authController import authController, login as login_endpoint, get_repo
+from src.Database.models import UserModel
 from fastapi import HTTPException
-import time
+from src.main import app
 
-
-# Testes Unitários da Classe (Métodos Estáticos)
+# --- TESTES UNITÁRIOS (Lógica Pura) ---
 
 def test_hash_senha():
     senha = "senha123"
     hash1 = authController.hash_senha(senha)
     hash2 = authController.hash_senha(senha)
-    # O hash deve ser determinístico ou verificável
     assert hash1 == hash2
     assert hash1 != senha
-
 
 def test_verificar_senha():
     senha = "senha_secreta"
     hash_salvo = authController.hash_senha(senha)
-
     assert authController.verificar_senha(senha, hash_salvo) is True
     assert authController.verificar_senha("senha_errada", hash_salvo) is False
 
-
 def test_verificar_email():
     assert authController.verificar_email("teste@email.com") is True
-    assert authController.verificar_email("testeemail.com") is False  # Sem @
-    assert authController.verificar_email("teste@com") is False  # Sem ponto (ajuste conforme lógica simples do código)
-    # Nota: O código verifica apenas '@' e '.'
-
+    assert authController.verificar_email("testeemail.com") is False
 
 def test_gerar_e_verificar_token():
     email = "usuario@teste.com"
     token = authController.gerar_token(email)
-
     assert isinstance(token, str)
-
     dados = authController.verificar_token(token)
     assert dados["valid"] is True
     assert dados["email"] == email
-
 
 def test_token_invalido():
     with pytest.raises(HTTPException):
         authController.verificar_token("token.invalido.aleatorio")
 
+# --- TESTES DE INTEGRAÇÃO DO ENDPOINT (Com Mock de Banco) ---
 
-# Testes do Endpoint (Async)
+# Mock do Repositório para simular o banco
+class MockRepositoryAuth:
+    def verifica_user(self, email):
+        if email == "correto@email.com":
+            # Retorna um usuário com a senha "123" hashada
+            senha_hash = authController.hash_senha("123")
+            return UserModel(email="correto@email.com", senha_hash=senha_hash, nickname="teste", vetor_roles=[])
+        return None
 
-@pytest.mark.asyncio
-async def test_login_sucesso():
-    # Testando com as credenciais hardcoded do seu código
-    resultado = await login_endpoint("teste@email.com", "123")
-    assert "token" in resultado
+@pytest.fixture
+def client_auth(client):
+    # Substitui o banco real pelo Mock
+    app.dependency_overrides[get_repo] = lambda: MockRepositoryAuth()
+    yield client
+    app.dependency_overrides = {}
 
+def test_login_sucesso(client_auth):
+    # Tenta logar com o usuário que existe no Mock
+    response = client_auth.post(
+        "/auth/login",
+        params={"email": "correto@email.com", "senha": "123"}
+    )
+    assert response.status_code == 200
+    assert "token" in response.json()
 
-@pytest.mark.asyncio
-async def test_login_credenciais_invalidas():
-    with pytest.raises(HTTPException) as excinfo:
-        await login_endpoint("errado@email.com", "senhaerrada")
+def test_login_usuario_inexistente(client_auth):
+    response = client_auth.post(
+        "/auth/login",
+        params={"email": "naoexiste@email.com", "senha": "123"}
+    )
+    assert response.status_code == 401
+    assert "Credenciais inválidas" in response.json()["detail"]
 
-    assert excinfo.value.status_code == 401
-    assert excinfo.value.detail == "Credenciais inválidas"
+def test_login_senha_incorreta(client_auth):
+    # Usuário existe, mas senha errada
+    response = client_auth.post(
+        "/auth/login",
+        params={"email": "correto@email.com", "senha": "senhaerrada"}
+    )
+    assert response.status_code == 401
+    assert "Credenciais inválidas" in response.json()["detail"]

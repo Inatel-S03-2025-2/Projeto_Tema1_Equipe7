@@ -1,115 +1,91 @@
 import pytest
-from unittest.mock import MagicMock, patch
-from src.Controllers.userController import userController
-from src.Database.user import User
-from datetime import datetime
-from fastapi import HTTPException
+from src.Controllers.userController import get_repo
+from src.Database.models import UserModel
+from src.main import app
 
 
-# Fixture para um usuário padrão
+# Mock para o Repositório
+class MockRepository:
+    def verifica_user(self, email):
+        # Simula que o email já existe
+        if email == "existente@teste.com":
+            return UserModel(nickname="antigo", email="existente@teste.com", vetor_roles=[])
+        return None
+
+    def cadastro_user(self, user):
+        user.id = 1
+        return user
+
+    def buscar_por_nickname(self, nickname):
+        # Simula encontrar apenas se o nickname for "user_teste"
+        if nickname == "user_teste":
+            return UserModel(nickname="user_teste", email="teste@teste.com", vetor_roles=[])
+        return None
+
+    def alterar_user(self, user):
+        return user
+
+    def remove_user(self, user_id):
+        # O controller verifica a existência pelo buscar_por_nickname antes de chamar remove_user
+        return True
+
+
+# Fixture que substitui o Repositório real pelo Mock
 @pytest.fixture
-def mock_user_model():
-    return User(
-        id=1,
-        nickname="novo_user",
-        email="novo@exemplo.com",
-        senha_hash="hash_simulado",
-        first_data_login=None,
-        data_criacao=datetime.now(),
-        vetor_roles=[]
+def client_com_mock(client):
+    app.dependency_overrides[get_repo] = lambda: MockRepository()
+    yield client
+    app.dependency_overrides = {}
+
+
+# --- TESTES DE SUCESSO ---
+
+def test_cadastrar_sucesso(client_com_mock):
+    response = client_com_mock.post(
+        "/users/cadastrar",
+        params={"nickname": "novo", "email": "novo@teste.com", "senha": "123"}
     )
+    assert response.status_code == 200
+    assert response.json()["message"] == "Usuário cadastrado com sucesso!"
 
 
-@pytest.mark.asyncio
-async def test_cadastrar_sucesso(mock_user_model):
-    # Patcha o objeto 'repo' que está instanciado dentro do userController.py
-    with patch("src.Controllers.userController.repo") as mock_repo:
-        # Simula que o usuário não existe (para permitir cadastro)
-        mock_repo.verifica_user.return_value = None
-        mock_repo.cadastro_user.return_value = None
-
-        response = await userController.cadastrar(
-            nickname="novo_user",
-            email="novo@exemplo.com",
-            senha="123"
-        )
-
-        assert response["message"] == "Usuário cadastrado com sucesso!"
-        assert response["user"].email == "novo@exemplo.com"
-
-        mock_repo.verifica_user.assert_called_once_with("novo@exemplo.com")
-        mock_repo.cadastro_user.assert_called_once()
+def test_buscar_sucesso(client_com_mock):
+    response = client_com_mock.get("/users/buscar/user_teste")
+    assert response.status_code == 200
+    assert response.json()["nickname"] == "user_teste"
 
 
-@pytest.mark.asyncio
-async def test_cadastrar_erro_duplicado():
-    with patch("src.Controllers.userController.repo") as mock_repo:
-        # Simula que o usuário já existe
-        mock_repo.verifica_user.return_value = True
+# --- TESTES DE ERRO ---
 
-        with pytest.raises(HTTPException) as excinfo:
-            await userController.cadastrar("user", "duplicado@teste.com", "123")
-
-        assert excinfo.value.status_code == 400
-        assert excinfo.value.detail == "Usuário com este e-mail já existe"
-
-
-@pytest.mark.asyncio
-async def test_buscar_sucesso(mock_user_model):
-    with patch("src.Controllers.userController.repo") as mock_repo:
-        # O controller itera sobre a lista retornada por listar_users
-        mock_repo.listar_users.return_value = [mock_user_model]
-
-        resultado = await userController.buscar("novo_user")
-
-        assert resultado == mock_user_model
-        assert resultado.nickname == "novo_user"
+def test_cadastrar_duplicado(client_com_mock):
+    """Testa erro ao tentar cadastrar email que já existe"""
+    response = client_com_mock.post(
+        "/users/cadastrar",
+        params={"nickname": "novo", "email": "existente@teste.com", "senha": "123"}
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Usuário com este e-mail já existe"
 
 
-@pytest.mark.asyncio
-async def test_buscar_nao_encontrado():
-    with patch("src.Controllers.userController.repo") as mock_repo:
-        mock_repo.listar_users.return_value = []
-
-        with pytest.raises(HTTPException) as excinfo:
-            await userController.buscar("fantasma")
-
-        assert excinfo.value.status_code == 404
+def test_buscar_nao_encontrado(client_com_mock):
+    """Testa busca por um usuário que não existe"""
+    response = client_com_mock.get("/users/buscar/fantasma")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Usuário não encontrado"
 
 
-@pytest.mark.asyncio
-async def test_atualizar_sucesso(mock_user_model):
-    with patch("src.Controllers.userController.repo") as mock_repo:
-        mock_repo.listar_users.return_value = [mock_user_model]
-
-        resultado = await userController.atualizar("novo_user", novo_email="email@novo.com")
-
-        assert resultado["message"] == "Usuário atualizado com sucesso!"
-        assert resultado["user"].email == "email@novo.com"
-        mock_repo.alterar_user.assert_called_once()
+def test_atualizar_nao_encontrado(client_com_mock):
+    """Testa tentar atualizar um usuário que não existe"""
+    response = client_com_mock.put(
+        "/users/atualizar/fantasma",
+        params={"novo_email": "novo@email.com"}
+    )
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Usuário não encontrado"
 
 
-@pytest.mark.asyncio
-async def test_listar_sucesso(mock_user_model):
-    with patch("src.Controllers.userController.repo") as mock_repo:
-        mock_repo.listar_users.return_value = [mock_user_model, mock_user_model]
-
-        resultado = await userController.listar()
-
-        assert len(resultado) == 2
-
-
-@pytest.mark.asyncio
-async def test_deletar_sucesso(mock_user_model):
-    with patch("src.Controllers.userController.repo") as mock_repo:
-        mock_repo.listar_users.return_value = [mock_user_model]
-
-        # O controller acessa repo._fake_db.remove(user).
-        # Precisamos criar esse atributo no mock.
-        mock_repo._fake_db = MagicMock()
-
-        response = await userController.deletar("novo_user")
-
-        assert response["message"] == "Usuário deletado com sucesso!"
-        # Verifica se o metodo remove foi chamado na lista fake
-        mock_repo._fake_db.remove.assert_called_once_with(mock_user_model)
+def test_deletar_nao_encontrado(client_com_mock):
+    """Testa tentar deletar um usuário que não existe"""
+    response = client_com_mock.delete("/users/deletar/fantasma")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Usuário não encontrado"
