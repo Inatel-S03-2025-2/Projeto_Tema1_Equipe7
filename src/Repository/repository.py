@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from src.Database.models import User
+from src.Database.models import UserModel as User
 from datetime import datetime
 
 
@@ -31,6 +31,9 @@ class Repository:
             .filter(User.email == email)
             .first()
         )
+
+    def buscar_por_nickname(self, nickname: str) -> User | None:
+        return self.db.query(User).filter(User.nickname == nickname).first()
 
     def compara_user(self, email: str, senha_hash: str) -> bool:
         """
